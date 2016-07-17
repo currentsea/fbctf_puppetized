@@ -1,0 +1,67 @@
+#!/bin/bash
+# Builds FBCTF Via Packer 
+# Author: currentsea 
+
+# Usage (in the context of packer) : sh create_fbctf_image.sh (use defaults)
+# The following example passes in the s3 bucket prefix as $1 and the FQDN as $2 
+# Usage (use case #2): sh create_fbctf_image.sh $MY_BUCKET_PREFIX $MY_FQDN 
+
+# Certificates would be stored in S3 under the following format (BUCKET_NAME is unique to your account and FQDN is the fully qualified 
+# domain name where your certificates are located.  In the example given, all elements of the certificate (private key, public certificate, and CA chain certificate) 
+# are stored in a tarball called "keys.tar.gz" 
+# <BUCKET_NAME>/<FQDN>/keys.tar.gz 
+# THE CONTENTS OF keys.tar.gz are as follows: 
+
+
+## NOTE: THE S3 BUCKET IS ACCESSIBLE ONLY WITHIN THE CONTEXT OF THE IAM ROLE GRANTED ACCESS TO IT ## 
+## IN THIS SCENARIO, ONLY THE JENKINS BOX RESPONSIBLE FOR BUILDING THE ACTUAL IMAGE WOULD BE GRANTED ACCESS 
+## TO THE BUCKET THAT CONTAINED THE CERTIFICATES.  IN NO OTHER INSTANCE WOULD ACCESS OF THE UNDERLYING CONTENTS BE POSSIBLE. 
+
+# See this page for more details on this model: http://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2.html
+
+## NOTE: A DIFFERENT IAM POLICY WOULD BE USED TO WRITE TO THE BUCKET, JENKINS COULD ONLY ACCESS IT IN THE MODEL SHOWN ABOVE. 
+
+
+DEFAULT_S3_BUCKET=bitsecure
+DEFAULT_S3_BUCKET_REGION=us-west-2
+DEFAULT_FQDN=secure.currentsea.io
+FQDN=${1:-$DEFAULT_FQDN}
+CERTS_DEFAULT_FILENAME="keys.tar.gz"
+CERTS_S3_PATH="s3://${1:-$DEFAULT_S3_BUCKET}/${2:-$FQDN}/${CERTS_DEFAULT_FILENAME}"
+
+
+if [ -f "$CERTS_DEFAULT_FILENAME" ]
+then
+	echo "${CERTS_DEFAULT_FILENAME} already exists in the current context.  Please make sure you are cleaning your workspace with each build so that you get the most up to date version of the SSL certificate before we attempt to build the image."
+	exit
+else
+	echo "ACQUIRING CERTIFICATES FROM ${CERTS_S3_PATH}" 
+	aws --region "${DEFAULT_S3_BUCKET_REGION}" s3 cp "${CERTS_S3_PATH}" . 
+fi
+
+if [ -f "$CERTS_DEFAULT_FILENAME" ]
+then
+	echo "${CERTS_DEFAULT_FILENAME} aquired successfully from s3" 
+	echo "Acquired the most up to date versions of the SSL certificates needed for ${FQDN}" 
+	echo "Building the packer image now..." 
+	
+else
+	echo "failed to acquire the file.  check permissions"
+	exit
+fi
+
+/opt/packer build ${WORKSPACE}/ctf.json | tee ${WORKSPACE}/packer.out
+PACKER_DATA=`tail -2 ${WORKSPACE}/packer.out` 
+python ${WORKSPACE}/packer/tools/getAmi.py --data "${PACKER_DATA}"
+source ami_id.txt 
+
+if [ "${AMI_ID}" == "" ]
+then 
+   echo "PACKER BUILD FAILED. No new Amazon Machine image was created." 
+   exit 1
+else 
+   echo "PACKER BUILD SUCCESSFUL!" 
+   echo "AMAZON MACHINE IMAGE (AMI) ID: ${AMI_ID}" 
+   echo "Saved to ami_id.txt" 
+fi 
+
