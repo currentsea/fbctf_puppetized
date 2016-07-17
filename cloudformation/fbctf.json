@@ -9,7 +9,7 @@
     	}, 
     	"DeployAvailabilityZone": {
     		"Type" : "String", 
-    		"Default": "us-west-2", 
+    		"Default": "us-west-2b", 
     		"Description": "Availability Zone to deploy the image to. (defaults to us-west-2)"  
     	},
     	"DNSHostedZoneId": {
@@ -34,6 +34,11 @@
     		"Default": "facebook-ctf", 
     		"Description": "IAM Profile to deploy with"  
     	}, 
+        "IAMProfile": {
+            "Type" : "String", 
+            "Default": "facebook-ctf", 
+            "Description": "IAM Profile to deploy with"  
+        }, 
 	    "InstanceType": {
             "Description": "WebServer EC2 instance type",
             "Type": "String",
