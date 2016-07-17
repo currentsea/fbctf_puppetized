@@ -50,8 +50,8 @@ else
 	exit
 fi
 
-/opt/packer build ${WORKSPACE}/fbctf.json | tee ${WORKSPACE}/packer.out
-PACKER_DATA=`tail -2 ${WORKSPACE}/packer.out` 
+/opt/packer build ${WORKSPACE}/packer/fbctf.json | tee ${WORKSPACE}/packer.out
+PACKER_DATA=`tail -1 ${WORKSPACE}/packer.out` 
 ${WORKSPACE}/packer/tools/get_ami --data "${PACKER_DATA}"
 source ami_id.txt 
 
