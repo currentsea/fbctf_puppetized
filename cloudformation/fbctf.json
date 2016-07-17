@@ -1,0 +1,123 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+
+    "Description" : "FBCTF AWS Cloudformtion Deployment developed by currentsea",
+    "Parameters": { 
+    	"ImageIdentifier": { 
+    		"Type" : "String", 
+    		"Default": "ami-00000000", 
+    		"Description": "The image that will be deployed (usually passed from the upstream job as an artifact)" 
+    	}, 
+    	"DeployAvailabilityZone": {
+    		"Type" : "String", 
+    		"Default": "us-west-2", 
+    		"Description": "Availability Zone to deploy the image to (defaults to us-west-2)"  
+    	},
+    	"DNSHostedZoneId": {
+    		"Type" : "String", 
+			"Default": "Z3TZU7T2K94OJV", 
+    		"Description": "Target Hosted Zone ID to deploy to", 
+    	},
+    	"DNSTargetUrl": {
+    		"Type" : "String", 
+    		"Default": "secure.currentsea.io",  
+    		"Description": "Target URL to deploy to"  
+
+    	},
+		"IAMProfile": {
+    		"Type" : "String", 
+    		"Default": "merkba-currentsea", 
+    		"Description": "IAM Profile to deploy with"  
+    	}, 
+	    "InstanceType": {
+            "Description": "WebServer EC2 instance type",
+            "Type": "String",
+            "Default": "m1.large",
+            "AllowedValues": [ "m1.small", "m1.medium", "m1.large", "m3.medium", "m3.large", "m3.2xlarge"],
+            "ConstraintDescription": "must be a valid EC2 instance type."
+        },
+	    "SSHCidr": {
+            "Type": "String",
+            "Default": "0.0.0.0/0", 
+            "Description": "CIDR to allow SSH access on (default is 0.0.0.0/0)",
+
+        }, 
+        "VpcId": { 
+            "Type": "String",
+            "Default": "vpc-b8d02bdd", 
+	        "Description": "VPC ID the CTF image is being deployed to"
+
+        }
+    }, 
+    "Resources" : {
+    	"CTFInstance": {
+		   "Type" : "AWS::EC2::Instance",
+		   "Properties" : {
+		      "AvailabilityZone" : { "Ref": "DeployAvailabilityZone" } ,
+		      "IamInstanceProfile" : { "Ref" : "IAMProfile" },
+		      "ImageId" : { "Ref": "ImageIdentifier" },
+		      "InstanceType" : { "Ref": "InstanceType" },
+		      "KeyName" : { "Ref": "KeyName" },
+		      "SecurityGroupIds" : [ { "Ref": "CTFSecurityGroup" } ],
+		      "Tags" : [ 
+		      	  {
+			          "Key" : "Name",  
+	   				  "Value" : "FBCTF Automated Secure Deployment" 
+				  }, 
+				  {
+					  "Key" : "Enviroment",
+					  "Value": "PROD"
+				  }     
+			  ]
+		   }
+		}, 
+		"CTFSecurityGroup": { 
+			"GroupDescription" : "Automaticaly generated security group for FBCTF deployment",
+			"SecurityGroupIngress" : [
+				{
+					"IpProtocol" : "tcp",
+					"FromPort" : "80",
+					"ToPort" : "80",
+					"CidrIp" : "0.0.0.0/0"
+				},
+				{
+					"IpProtocol" : "tcp",
+					"FromPort" : "22",
+					"ToPort" : "22",
+					"CidrIp" : { "Ref": "SSHCidr" }
+				}
+			], 
+		    "VpcId": { "Ref": "VpcId"}
+		},
+		"DNSRecordSet" : {
+			"Type" : "AWS::Route53::RecordSet",
+			"Properties" : 
+			{
+				"HostedZoneId" : { "Ref": "DNSHostedZoneId" },
+				"Name" : { "Ref": "DNSTargetUrl" },
+				"Type" : "A",
+				"TTL" : "900",
+				"ResourceRecords" : [ { "Fn::GetAtt" : [ "CTFInstance", "PublicIp" ] }, ]
+			}
+		}
+    },
+    "Outputs": {
+	    "CTFInstanceIP": {
+            "Description" : "IP Address of FBCTF EC2 Instance that was launched",
+            "Value": { "Fn::GetAtt" : [ "CTFInstance", "PublicIp" ]}
+        },
+	    "CTFInstanceID": {
+            "Description" : "AWS EC2 Instance ID of the CTF Instance Launched",
+            "Value": { "Fn::GetAtt" : [ "CTFInstance", "InstanceId" ]}
+        },
+        "CTFSecurityGroupID": { 
+            "Description" : "Security Group ID attached to the FBCTF Instance",
+            "Value": { "Fn::GetAtt" : [ "CTFSecurityGroup", "GroupId" ]}
+        },
+        "CTFUrl": { 
+            "Description" : "URL that clients will connect to for the CTF tournament",
+	        "Value": { "Ref": "DNSTargetUrl" }
+        }
+    }
+}
+
