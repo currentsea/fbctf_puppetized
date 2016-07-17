@@ -147,7 +147,8 @@ You will need to validate that the `facebook-ctf` IAM Instance profile has the `
 * At the very minimum, the `facebook-ctf` role should be associated with the IAM profile that is deploying it. 
 
 ```
-aws iam get-instance-profile --profile-name facebook-ctf | tee facebook-ctf-instance-profile.json 
+#!/bin/bash
+aws iam get-instance-profile --instance-profile-name facebook-ctf | tee facebook-ctf-instance-profile.json 
 ```
 
 ## A Successful Configuration

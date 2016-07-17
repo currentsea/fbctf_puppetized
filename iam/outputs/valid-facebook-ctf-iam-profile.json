@@ -1,0 +1,30 @@
+{
+    "InstanceProfile": {
+        "InstanceProfileId": "AIPAJH5BFDHZRMADHGKHI", 
+        "Roles": [
+            {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17", 
+                    "Statement": [
+                        {
+                            "Action": "sts:AssumeRole", 
+                            "Effect": "Allow", 
+                            "Principal": {
+                                "Service": "ec2.amazonaws.com"
+                            }
+                        }
+                    ]
+                }, 
+                "RoleId": "AROAJBOMZEST4ACK5P5BC", 
+                "CreateDate": "0000-00-00T00:00:00Z", 
+                "RoleName": "facebook-ctf", 
+                "Path": "/", 
+                "Arn": "arn:aws:iam::000000000000:role/facebook-ctf"
+            }
+        ], 
+        "CreateDate": "0000-00-00T00:00:00Z", 
+        "InstanceProfileName": "facebook-ctf", 
+        "Path": "/", 
+        "Arn": "arn:aws:iam::000000000000:instance-profile/facebook-ctf"
+    }
+}
