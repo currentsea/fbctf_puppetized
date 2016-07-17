@@ -48,7 +48,7 @@
         },
         "KeyName": { 
             "Type": "String",
-            "Default": "fbctf.pem", 
+            "Default": "fbctf", 
             "Description": "SSH key to associate with EC2 instance." 
         },
 	    "SSHCidr": {
