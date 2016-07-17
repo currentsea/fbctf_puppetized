@@ -52,7 +52,7 @@ fi
 
 /opt/packer build ${WORKSPACE}/ctf.json | tee ${WORKSPACE}/packer.out
 PACKER_DATA=`tail -2 ${WORKSPACE}/packer.out` 
-python ${WORKSPACE}/packer/tools/getAmi.py --data "${PACKER_DATA}"
+./${WORKSPACE}/packer/tools/get_ami --data "${PACKER_DATA}"
 source ami_id.txt 
 
 if [ "${AMI_ID}" == "" ]
