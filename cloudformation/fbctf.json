@@ -119,7 +119,7 @@
         },
 	    "CTFInstanceID": {
             "Description" : "AWS EC2 Instance ID of the CTF Instance Launched",
-            "Value": { "Fn::GetAtt" : [ "CTFInstance", "InstanceId" ]}
+            "Value": { "Ref" : "CTFInstance" }
         },
         "CTFSecurityGroupID": { 
             "Description" : "Security Group ID attached to the FBCTF Instance",
