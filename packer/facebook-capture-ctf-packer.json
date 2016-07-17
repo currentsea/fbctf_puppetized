@@ -1,0 +1,39 @@
+{
+    "variables": {
+        "aws_access_key": "",
+        "aws_secret_key": ""
+    },
+    "builders": [{
+        "type": "amazon-ebs",
+        "region": "us-west-2",
+        "source_ami": "ami-9dbea4fc",
+        "instance_type": "m1.small",
+        "ssh_username": "ubuntu",
+        "ami_name": "fbctf {{timestamp}}"
+    }],
+    "provisioners": [
+        {
+            "type": "file",
+            "source": "keys.tar.gz",
+            "destination": "/home/ubuntu/keys.tar.gz"
+        }, 
+        {
+          "type": "shell",
+          "inline": [ 
+            "sleep 188", 
+            "sudo apt-get remove -y unison", 
+            "echo \"\n\" | sudo add-apt-repository ppa:eugenesan/ppa", 
+            "sudo apt-get update", 
+            "sudo apt-get install -y git", 
+            "sudo apt-get install -y unison", 
+            "cd /home/ubuntu", 
+            "sudo chown -R ubuntu *", 
+            "tar -xzvf keys.tar.gz", 
+            "git clone https://github.com/facebook/fbctf", 
+            "cd fbctf", 
+            "/bin/bash extra/provision.sh -m prod -s /home/ubuntu/fbctf -c own -k /home/ubuntu/privkey1.pem -C /home/ubuntu/fullchain1.pem -s /home/ubuntu/fbctf | tee /home/ubuntu/fbctf-setup-output.txt"
+          ]
+        }
+    ]
+}
+
